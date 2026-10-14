@@ -1,0 +1,53 @@
+name: APK bauen
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Abhaengigkeiten installieren
+        run: npm install
+
+      - name: Android-Projekt anlegen
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+          npx cap add android
+          npx cap sync android
+
+      - name: Querformat und Vollbild einstellen
+        run: |
+          sed -i 's/<activity/<activity android:screenOrientation="sensorLandscape"/' android/app/src/main/AndroidManifest.xml
+          sed -i '/<style name="AppTheme.NoActionBar"/a\        <item name="android:windowFullscreen">true</item>' android/app/src/main/res/values/styles.xml
+
+      - name: APK bauen
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Als Download bereitstellen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: Robo-Party APK ${{ github.run_number }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: robo-party-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

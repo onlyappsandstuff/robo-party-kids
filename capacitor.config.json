@@ -1,0 +1,7 @@
+{
+  "appId": "de.onlyappsandstuff.roboparty",
+  "appName": "Robo-Party",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "backgroundColor": "#121a3a"
+}
